@@ -9,24 +9,24 @@ int main(void) {
   // init clients and ingredients
   auto cl1 = std::make_shared<Client>(base_group);
   clients.emplace("one", cl1);
-  ingredients["cheese"].AddGood(cl1);
-  ingredients["pepper"].AddGood(cl1);
+  SetIngredient(ingredients, "cheese", cl1, Specification::kGood);
+  SetIngredient(ingredients, "pepper", cl1, Specification::kGood);
 
   auto cl2 = std::make_shared<Client>(base_group);
   clients.emplace("two", cl2);
-  ingredients["basil"].AddGood(cl2);
-  ingredients["pineapple"].AddBad(cl2);
+  SetIngredient(ingredients, "basil", cl2, Specification::kGood);
+  SetIngredient(ingredients, "pineapple", cl2, Specification::kBad);
 
   auto cl3 = std::make_shared<Client>(base_group);
   clients.emplace("third", cl3);
-  ingredients["basil"].AddBad(cl3);
-  ingredients["tomatoes"].AddGood(cl3);
-  ingredients["mushrooms"].AddGood(cl3);
+  SetIngredient(ingredients, "basil", cl3, Specification::kGood);
+  SetIngredient(ingredients, "tomatoes", cl3, Specification::kGood);
+  SetIngredient(ingredients, "mushrooms", cl3, Specification::kGood);
 
   // Splitting Tree
   for (auto& iter : ingredients) {
     auto& ingredient = iter.second;
-    ingredient.AddingGroups();
+    ingredient->AddingGroups();
   }
 
   return 0;

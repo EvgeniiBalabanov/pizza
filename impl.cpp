@@ -1,13 +1,14 @@
 #include "header.hpp"
 #include <iostream>
 
-void Ingredient::AddGood(std::shared_ptr<Client> client) {
-  good_.push_back(client);
+void Ingredient::AddClient(std::shared_ptr<Client> client, Specification specification) {
+  if (specification == Specification::kGood) {
+    good_.push_back(client);
+  } else {
+    bad_.push_back(client);
+  }
 }
 
-void Ingredient::AddBad(std::shared_ptr<Client> client) {
-  bad_.push_back(client);
-}
 
 void Ingredient::AddingGroups() {
   for (Specification specification : {Specification::kGood, Specification::kBad}) {
@@ -42,9 +43,10 @@ void Ingredient::ClearBuffers(std::vector<std::shared_ptr<Group>>& groups) {
 }
 
 std::shared_ptr<Group> Client::PrepareGroup(Specification specification) {
-
+  auto last_share = share_;
   auto [is_new, group] = share_->GetOrMakeBufferGroup(specification);
-  return is_new ? group : nullptr;
+  share_ = group;
+  return is_new ? last_share : nullptr;
 }
 
 void Group::ClearBuffer() {
@@ -59,6 +61,7 @@ std::pair<bool, std::shared_ptr<Group>> Group::GetOrMakeBufferGroup(Specificatio
   auto& group = (specification == Specification::kGood) ? buffer_->good : buffer_->bad;
   if (!group) {
     group = std::make_shared<Group>(specification);
+    group->main_parrent_ = shared_from_this();
     is_new = true;
   }
   return {is_new, group};
@@ -89,7 +92,7 @@ void Group::GetPizzaIngredients(std::vector<std::string>& ingredients) {
 void Group::AddRelation(Specification specification) {
   std::shared_ptr<Group> group = GetBufferGroup(specification);
   if (!group) {
-    throw "buffer group is nullptr";
+    throw std::runtime_error("buffer group is nullptr");
   }
   if (main_parrent_) {
     main_parrent_->AddRelation(specification, group);
@@ -97,11 +100,10 @@ void Group::AddRelation(Specification specification) {
   if (additional_parrent_) {
     additional_parrent_->AddRelation(specification, group);
   }
-  group->main_parrent_ = shared_from_this();
 }
 
 void Group::AddRelation(Specification specification, 
-                 std::shared_ptr<Group> start) {
+                        std::shared_ptr<Group> start) {
   auto stop = GetBufferGroup(specification);
   if (stop) {
     start->additional_parrent_ = stop;
@@ -113,4 +115,15 @@ void Group::AddRelation(Specification specification,
       additional_parrent_->AddRelation(specification, start);
     }
   }
+}
+
+void SetIngredient(Ingredients& ingredients, const std::string& name, std::shared_ptr<Client> client, Specification specification) {
+  std::shared_ptr<Ingredient> ingredient = nullptr;
+  if (auto iter = ingredients.find(name); iter == ingredients.end()) {
+    ingredient = std::make_shared<Ingredient>(name);
+    ingredients.emplace(name, ingredient);
+  } else {
+    ingredient = iter->second;
+  }
+  ingredient->AddClient(client, specification);
 }

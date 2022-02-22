@@ -49,18 +49,21 @@ private:
 
 class Ingredient {
 public:
+  explicit Ingredient(const std::string& name) : name_(name) {}
   void AddingGroups();
-  void AddGood(std::shared_ptr<Client> client);
-  void AddBad(std::shared_ptr<Client> client);
+  void AddClient(std::shared_ptr<Client> client, Specification specification);
 private:
   std::vector<std::shared_ptr<Group>> PrepareGroups(Specification specification);
   void AddRelations(std::vector<std::shared_ptr<Group>>& groups, Specification specification);
   void ClearBuffers(std::vector<std::shared_ptr<Group>>& groups);
   std::vector<std::shared_ptr<Client>> good_; // Клиенты которым нужен ингредиент
   std::vector<std::shared_ptr<Client>> bad_; // Клиенты которые против ингредиента
+  std::string name_;
 };
 
 using Clients = std::unordered_map<std::string, std::shared_ptr<Client>>;
-using Ingredients = std::unordered_map<std::string, Ingredient>;
+using Ingredients = std::unordered_map<std::string, std::shared_ptr<Ingredient>>;
 
 std::shared_ptr<Group> GetBestGroup(/*groups*/);
+
+void SetIngredient(Ingredients& ingredients, const std::string& name, std::shared_ptr<Client> client, Specification specification);
